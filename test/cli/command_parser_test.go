@@ -5,8 +5,10 @@ import (
 	"github.com/kmacmcfarlane/go-scheduler/pkg/cli"
 	"github.com/kmacmcfarlane/go-scheduler/pkg/model/status"
 	"github.com/kmacmcfarlane/go-scheduler/test/cli/mocks"
+	common_mocks "github.com/kmacmcfarlane/go-scheduler/test/common/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/stretchr/testify/mock"
 	"strings"
 )
 
@@ -15,21 +17,19 @@ var _ = Describe("Command Parser", func(){
 	var (
 		parser *cli.CommandParser
 		clientService *mocks.ClientService
-		logger *mocks.Logger
+		logger *common_mocks.Logger
 	)
 
 	BeforeEach(func(){
 
 		clientService = new(mocks.ClientService)
-		logger = new(mocks.Logger)
+		logger = new(common_mocks.Logger)
 
 		parser = cli.NewCommandParser(clientService, logger)
 	})
 
 	AfterEach(func(){
-
 		clientService.AssertExpectations(GinkgoT())
-
 		logger.AssertExpectations(GinkgoT())
 	})
 
@@ -39,7 +39,19 @@ var _ = Describe("Command Parser", func(){
 
 				logger.
 					On("Println", "sub-command is required: start, stop, query, or log").
-					Times(1)
+					Once().
+					On("Println", "start").
+					Once().
+					On("Println", "stop").
+					Once().
+					On("Println", "query").
+					Once().
+					On("Println", "log").
+					Once()
+
+				logger.
+					On("Write", mock.AnythingOfType("[]uint8")).
+					Return(123, nil) // called for usage details
 
 				statusCode := parser.Parse([]string{"foo.exe"})
 
@@ -54,6 +66,10 @@ var _ = Describe("Command Parser", func(){
 					On("Printf", "unrecognized command: %s\n", "jump").
 					Times(1)
 
+				logger.
+					On("Println", "sub-command is required: start, stop, query, or log").
+					Times(1)
+
 				statusCode := parser.Parse([]string{"foo.exe", "jump"})
 
 				Ω(statusCode).Should(Equal(1))
@@ -66,6 +82,10 @@ var _ = Describe("Command Parser", func(){
 		Context("Missing image name", func(){
 			It("Prints usage and exits with error status 1", func(){
 
+				logger.
+					On("Write", mock.AnythingOfType("[]uint8")).
+					Return(123, nil) // called for usage details
+
 				statusCode := parser.Parse([]string{"foo.exe", "start", "-name", "jobName"})
 
 				Ω(statusCode).Should(Equal(1))
@@ -74,6 +94,10 @@ var _ = Describe("Command Parser", func(){
 
 		Context("Missing job name", func(){
 			It("Prints usage and exits with error status 1", func(){
+
+				logger.
+					On("Write", mock.AnythingOfType("[]uint8")).
+					Return(123, nil) // called for usage details
 
 				statusCode := parser.Parse([]string{"foo.exe", "start", "-image", "imageName"})
 
@@ -123,6 +147,10 @@ var _ = Describe("Command Parser", func(){
 		Context("Missing job name", func(){
 			It("Prints usage and exits with error status 1", func(){
 
+				logger.
+					On("Write", mock.AnythingOfType("[]uint8")).
+					Return(123, nil) // called for usage details
+
 				statusCode := parser.Parse([]string{"foo.exe", "stop"})
 
 				Ω(statusCode).Should(Equal(1))
@@ -171,6 +199,10 @@ var _ = Describe("Command Parser", func(){
 		Context("Missing job name", func(){
 			It("Prints usage and exits with error status 1", func(){
 
+				logger.
+					On("Write", mock.AnythingOfType("[]uint8")).
+					Return(123, nil) // called for usage details
+
 				statusCode := parser.Parse([]string{"foo.exe", "query"})
 
 				Ω(statusCode).Should(Equal(1))
@@ -218,6 +250,10 @@ var _ = Describe("Command Parser", func(){
 
 		Context("Missing job name", func(){
 			It("Prints usage and exits with error status 1", func(){
+
+				logger.
+					On("Write", mock.AnythingOfType("[]uint8")).
+					Return(123, nil) // called for usage details
 
 				statusCode := parser.Parse([]string{"foo.exe", "log"})
 

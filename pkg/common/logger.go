@@ -1,11 +1,16 @@
 package common
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"os"
+)
 
 type Logger interface {
 	Print(args ...interface{})
 	Printf(format string, args ...interface{})
 	Println(args ...interface{})
+	Write(p []byte) (n int, err error)
 }
 
 type ConsoleLogger struct {}
@@ -24,4 +29,12 @@ func (l *ConsoleLogger) Printf(format string, args ...interface{}) {
 
 func (l *ConsoleLogger) Println(args ...interface{}) {
 	fmt.Println(args)
+}
+
+// io.Writer interface
+func (l *ConsoleLogger) Write(p []byte) (n int, err error) {
+
+	buf := bytes.NewBuffer(p)
+
+	return fmt.Fprint(os.Stderr, buf.String())
 }

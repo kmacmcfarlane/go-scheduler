@@ -23,6 +23,7 @@ func (cp *CommandParser) Parse(args []string) (statusCode int) {
 
 	// Start
 	startCommand := flag.NewFlagSet("start", flag.ExitOnError)
+	startCommand.SetOutput(cp.logger)
 
 	startImage := startCommand.String("image", "", "The docker image name (Required)")
 	startName := startCommand.String("name", "", "The name of the job (Required)")
@@ -31,26 +32,44 @@ func (cp *CommandParser) Parse(args []string) (statusCode int) {
 
 	// Stop
 	stopCommand := flag.NewFlagSet("stop", flag.ExitOnError)
+	stopCommand.SetOutput(cp.logger)
 
 	stopName := stopCommand.String("name", "", "The name of the job (Required)")
 	stopHost := stopCommand.String("host", "localhost", "The hostname of the master node")
 
 	// Query
 	queryCommand := flag.NewFlagSet("query", flag.ExitOnError)
+	queryCommand.SetOutput(cp.logger)
 
 	queryName := queryCommand.String("name", "", "The name of the job (Required)")
 	queryHost := queryCommand.String("host", "localhost", "The hostname of the master node")
 
 	// Stream Logs
 	logCommand := flag.NewFlagSet("log", flag.ExitOnError)
+	logCommand.SetOutput(cp.logger)
 
 	logName := logCommand.String("name", "", "The name of the job (Required)")
 	logHost := logCommand.String("host", "localhost", "The hostname of the master node")
 
 	// Validate command input
-	if len(args) < 2 {
+	defaultFlags := flag.NewFlagSet("default", flag.ExitOnError)
+	helpShort := defaultFlags.Bool("h", false, "Print this usage")
+	helpLong := defaultFlags.Bool("help", false, "Print this usage")
+	defaultFlags.Parse(args)
+
+	if len(args) < 2 || *helpShort || *helpLong {
+
 		cp.logger.Println("sub-command is required: start, stop, query, or log")
-		flag.PrintDefaults()
+
+		cp.logger.Println("start")
+		startCommand.PrintDefaults()
+		cp.logger.Println("stop")
+		stopCommand.PrintDefaults()
+		cp.logger.Println("query")
+		queryCommand.PrintDefaults()
+		cp.logger.Println("log")
+		logCommand.PrintDefaults()
+
 		return 1
 	}
 
@@ -61,7 +80,7 @@ func (cp *CommandParser) Parse(args []string) (statusCode int) {
 
 		// Assert required flags
 		if *startImage == "" || *startName == "" {
-			flag.PrintDefaults()
+			startCommand.PrintDefaults()
 			return 1
 		}
 
@@ -79,7 +98,7 @@ func (cp *CommandParser) Parse(args []string) (statusCode int) {
 
 		// Assert required flags
 		if *stopName == "" {
-			flag.PrintDefaults()
+			stopCommand.PrintDefaults()
 			return 1
 		}
 
@@ -97,7 +116,7 @@ func (cp *CommandParser) Parse(args []string) (statusCode int) {
 
 		// Assert required flags
 		if *queryName == "" {
-			flag.PrintDefaults()
+			queryCommand.PrintDefaults()
 			return 1
 		}
 
@@ -115,7 +134,7 @@ func (cp *CommandParser) Parse(args []string) (statusCode int) {
 
 		// Assert required flags
 		if *logName == "" {
-			flag.PrintDefaults()
+			logCommand.PrintDefaults()
 			return 1
 		}
 
@@ -145,7 +164,11 @@ func (cp *CommandParser) Parse(args []string) (statusCode int) {
 			cp.logger.Print(line) // line contains the newline char at the end
 		}
 	default:
+
 		cp.logger.Printf("unrecognized command: %s\n", args[1])
+
+		cp.logger.Println("sub-command is required: start, stop, query, or log")
+
 		return 1
 	}
 
