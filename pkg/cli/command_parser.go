@@ -3,16 +3,17 @@ package cli
 import (
 	"bufio"
 	"flag"
+	"github.com/kmacmcfarlane/go-scheduler/pkg/common"
 	"io"
 	"os"
 )
 
 type CommandParser struct {
 	clientService ClientService
-	logger Logger
+	logger common.Logger
 }
 
-func NewCommandParser(clientService ClientService, logger Logger) *CommandParser {
+func NewCommandParser(clientService ClientService, logger common.Logger) *CommandParser {
 	return &CommandParser{
 		clientService: clientService,
 		logger: logger}

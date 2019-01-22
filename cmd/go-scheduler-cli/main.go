@@ -2,6 +2,7 @@ package go_scheduler_cli
 
 import (
 	"github.com/kmacmcfarlane/go-scheduler/pkg/cli"
+	"github.com/kmacmcfarlane/go-scheduler/pkg/common"
 	"os"
 )
 
@@ -9,8 +10,12 @@ func main() {
 
 	clientService := cli.NewClientService()
 
-	commandParser := cli.NewCommandParser(clientService)
+	logger := common.NewLogger()
 
-	// Separate logic for testability
-	commandParser.Parse(os.Args)
+	commandParser := cli.NewCommandParser(clientService, logger)
+
+	// Parse and Execute Command
+	statusCode := commandParser.Parse(os.Args)
+
+	os.Exit(statusCode)
 }
