@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+option go_package = "github.com/kmacmcfarlane/go-scheduler/pkg/gen/master";
+
+service Master {
+   rpc Start(StartRequest) returns (StartResponse);
+   rpc Stop(StopRequest) returns (StopResponse);
+   rpc Query(QueryRequest) returns (StatusResponse);
+   rpc Log(LogRequest) returns (stream LogResponse);
+}
+
+message StartRequest {
+    string imageName = 1;
+    string jobName = 2;
+    string hostName = 3;
+}
+
+message StopRequest {
+    string jobName = 1;
+    string hostName = 2;
+}
+
+message QueryRequest {
+    string jobName = 1;
+    string hostName = 2;
+}
+
+message LogRequest {
+    string jobName = 1;
+    string hostName = 2;
+}
+
+message StartResponse {
+    string error = 1;
+}
+
+message StopResponse {
+    string error = 1;
+}
+
+message StatusResponse {
+    string error = 1;
+    uint32 code = 2;
+}
+
+message LogResponse {
+    string error = 1;
+    string logMessages = 2;
+}

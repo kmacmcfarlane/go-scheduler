@@ -3,8 +3,11 @@ This is a distributed job scheduler for linux systems built in Go. It can run ar
 
 # Install
 
-## Install the package
-`go install github.com/kmacmcfarlane/go-scheduler`
+## Get the package
+`go get github.com/kmacmcfarlane/go-scheduler`
+
+## Build the project
+`make`
 
 ## Generate Certificates with EasyRSA
 The cluster uses x509 certificates to authenticate the client, master, and node applications.
