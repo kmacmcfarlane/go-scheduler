@@ -11,22 +11,22 @@ type ClientService struct {
 	mock.Mock
 }
 
-// Log provides a mock function with given fields: name, host
-func (_m *ClientService) Log(name string, host string) (io.Reader, error) {
-	ret := _m.Called(name, host)
+// Log provides a mock function with given fields: jobName, host
+func (_m *ClientService) Log(jobName string, host string) (io.ReadCloser, error) {
+	ret := _m.Called(jobName, host)
 
-	var r0 io.Reader
-	if rf, ok := ret.Get(0).(func(string, string) io.Reader); ok {
-		r0 = rf(name, host)
+	var r0 io.ReadCloser
+	if rf, ok := ret.Get(0).(func(string, string) io.ReadCloser); ok {
+		r0 = rf(jobName, host)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(io.Reader)
+			r0 = ret.Get(0).(io.ReadCloser)
 		}
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(name, host)
+		r1 = rf(jobName, host)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -34,20 +34,20 @@ func (_m *ClientService) Log(name string, host string) (io.Reader, error) {
 	return r0, r1
 }
 
-// Query provides a mock function with given fields: name, host
-func (_m *ClientService) Query(name string, host string) (status.Status, error) {
-	ret := _m.Called(name, host)
+// Query provides a mock function with given fields: jobName, host
+func (_m *ClientService) Query(jobName string, host string) (status.Status, error) {
+	ret := _m.Called(jobName, host)
 
 	var r0 status.Status
 	if rf, ok := ret.Get(0).(func(string, string) status.Status); ok {
-		r0 = rf(name, host)
+		r0 = rf(jobName, host)
 	} else {
 		r0 = ret.Get(0).(status.Status)
 	}
 
 	var r1 error
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(name, host)
+		r1 = rf(jobName, host)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -55,13 +55,13 @@ func (_m *ClientService) Query(name string, host string) (status.Status, error) 
 	return r0, r1
 }
 
-// Start provides a mock function with given fields: dockerImage, name, host
-func (_m *ClientService) Start(dockerImage string, name string, host string) error {
-	ret := _m.Called(dockerImage, name, host)
+// Start provides a mock function with given fields: dockerImage, jobName, host
+func (_m *ClientService) Start(dockerImage string, jobName string, host string) error {
+	ret := _m.Called(dockerImage, jobName, host)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
-		r0 = rf(dockerImage, name, host)
+		r0 = rf(dockerImage, jobName, host)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -69,13 +69,13 @@ func (_m *ClientService) Start(dockerImage string, name string, host string) err
 	return r0
 }
 
-// Stop provides a mock function with given fields: name, host
-func (_m *ClientService) Stop(name string, host string) error {
-	ret := _m.Called(name, host)
+// Stop provides a mock function with given fields: jobName, host
+func (_m *ClientService) Stop(jobName string, host string) error {
+	ret := _m.Called(jobName, host)
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(name, host)
+		r0 = rf(jobName, host)
 	} else {
 		r0 = ret.Error(0)
 	}

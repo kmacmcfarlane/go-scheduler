@@ -42,6 +42,7 @@ func createStatus(s string) Status {
 }
 
 var (
+	Unknown = createStatus("")
 	Created  = createStatus("created")
 	Restarting  = createStatus("restarting")
 	Running  = createStatus("running")

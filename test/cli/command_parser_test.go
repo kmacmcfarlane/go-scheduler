@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/kmacmcfarlane/go-scheduler/pkg/cli"
 	"github.com/kmacmcfarlane/go-scheduler/pkg/model/status"
+	"github.com/kmacmcfarlane/go-scheduler/test"
 	"github.com/kmacmcfarlane/go-scheduler/test/cli/mocks"
 	common_mocks "github.com/kmacmcfarlane/go-scheduler/test/common/mocks"
 	. "github.com/onsi/ginkgo"
@@ -35,11 +36,9 @@ var _ = Describe("Command Parser", func(){
 
 	Describe("Subcommand", func(){
 		Context("Missing subcommand", func(){
-			It("Prints message and exits with error status 1", func(){
+			It("Prints message and returns error", func(){
 
 				logger.
-					On("Println", "sub-command is required: start, stop, query, or log").
-					Once().
 					On("Println", "start").
 					Once().
 					On("Println", "stop").
@@ -53,26 +52,18 @@ var _ = Describe("Command Parser", func(){
 					On("Write", mock.AnythingOfType("[]uint8")).
 					Return(123, nil) // called for usage details
 
-				statusCode := parser.Parse([]string{"foo.exe"})
+				err := parser.Parse([]string{"foo.exe"})
 
-				Ω(statusCode).Should(Equal(1))
+				Ω(err.Error()).Should(Equal("sub-command is required: start, stop, query, or log"))
 			})
 		})
 
 		Context("Invalid subcommand", func(){
-			It("Prints message and exits with error status 1", func(){
+			It("Prints message and returns error", func(){
 
-				logger.
-					On("Printf", "unrecognized command: %s\n", "jump").
-					Times(1)
+				err := parser.Parse([]string{"foo.exe", "jump"})
 
-				logger.
-					On("Println", "sub-command is required: start, stop, query, or log").
-					Times(1)
-
-				statusCode := parser.Parse([]string{"foo.exe", "jump"})
-
-				Ω(statusCode).Should(Equal(1))
+				Ω(err.Error()).Should(Equal("unrecognized command: jump\nsub-command is required: start, stop, query, or log"))
 			})
 		})
 	})
@@ -80,51 +71,47 @@ var _ = Describe("Command Parser", func(){
 	Describe("Start Command", func(){
 
 		Context("Missing image name", func(){
-			It("Prints usage and exits with error status 1", func(){
+			It("Prints usage and returns error", func(){
 
 				logger.
 					On("Write", mock.AnythingOfType("[]uint8")).
 					Return(123, nil) // called for usage details
 
-				statusCode := parser.Parse([]string{"foo.exe", "start", "-name", "jobName"})
+				err := parser.Parse([]string{"foo.exe", "start", "-name", "jobName"})
 
-				Ω(statusCode).Should(Equal(1))
+				Ω(err.Error()).Should(Equal("image name is required"))
 			})
 		})
 
 		Context("Missing job name", func(){
-			It("Prints usage and exits with error status 1", func(){
+			It("Prints usage and returns error", func(){
 
 				logger.
 					On("Write", mock.AnythingOfType("[]uint8")).
 					Return(123, nil) // called for usage details
 
-				statusCode := parser.Parse([]string{"foo.exe", "start", "-image", "imageName"})
+				err := parser.Parse([]string{"foo.exe", "start", "-image", "imageName"})
 
-				Ω(statusCode).Should(Equal(1))
+				Ω(err.Error()).Should(Equal("job name is required"))
 			})
 		})
 
 		Context("Error returned from ClientService", func(){
-			It("Print error and return status 3", func(){
+			It("Print error and return", func(){
 
 				clientService.
 					On("Start", "imageName", "jobName", "hostName").
 					Return(errors.New("error message")).
 					Times(1)
 
-				logger.
-					On("Printf", "error starting job: %s", "error message").
-					Times(1)
+				err := parser.Parse([]string{"foo.exe", "start", "-image", "imageName", "-name", "jobName", "-host", "hostName"})
 
-				statusCode := parser.Parse([]string{"foo.exe", "start", "-image", "imageName", "-name", "jobName", "-host", "hostName"})
-
-				Ω(statusCode).Should(Equal(3))
+				Ω(err.Error()).Should(Equal("error message"))
 			})
 		})
 
 		Context("Success", func(){
-			It("return status 0", func(){
+			It("Returns no error", func(){
 
 				clientService.
 					On("Start", "imageName", "jobName", "hostName").
@@ -135,9 +122,9 @@ var _ = Describe("Command Parser", func(){
 					On("Println", "job started").
 					Times(1)
 
-				statusCode := parser.Parse([]string{"foo.exe", "start", "-image", "imageName", "-name", "jobName", "-host", "hostName"})
+				err := parser.Parse([]string{"foo.exe", "start", "-image", "imageName", "-name", "jobName", "-host", "hostName"})
 
-				Ω(statusCode).Should(Equal(0))
+				Ω(err).Should(BeNil())
 			})
 		})
 	})
@@ -145,38 +132,34 @@ var _ = Describe("Command Parser", func(){
 	Describe("Stop Command", func(){
 
 		Context("Missing job name", func(){
-			It("Prints usage and exits with error status 1", func(){
+			It("Prints usage and returns error", func(){
 
 				logger.
 					On("Write", mock.AnythingOfType("[]uint8")).
 					Return(123, nil) // called for usage details
 
-				statusCode := parser.Parse([]string{"foo.exe", "stop"})
+				err := parser.Parse([]string{"foo.exe", "stop"})
 
-				Ω(statusCode).Should(Equal(1))
+				Ω(err.Error()).Should(Equal("job name is required"))
 			})
 		})
 
 		Context("Error returned from ClientService", func(){
-			It("Print error and return status 3", func(){
+			It("Print error and return", func(){
 
 				clientService.
 					On("Stop", "jobName", "hostName").
 					Return(errors.New("error message")).
 					Times(1)
 
-				logger.
-					On("Printf", "error stopping job: %s", "error message").
-					Times(1)
+				err := parser.Parse([]string{"foo.exe", "stop", "-name", "jobName", "-host", "hostName"})
 
-				statusCode := parser.Parse([]string{"foo.exe", "stop", "-name", "jobName", "-host", "hostName"})
-
-				Ω(statusCode).Should(Equal(3))
+				Ω(err.Error()).Should(Equal("error message"))
 			})
 		})
 
 		Context("Success", func(){
-			It("return status 0", func(){
+			It("Returns no error", func(){
 
 				clientService.
 					On("Stop", "jobName", "hostName").
@@ -187,9 +170,9 @@ var _ = Describe("Command Parser", func(){
 					On("Println", "job stopped").
 					Times(1)
 
-				statusCode := parser.Parse([]string{"foo.exe", "stop", "-name", "jobName", "-host", "hostName"})
+				err := parser.Parse([]string{"foo.exe", "stop", "-name", "jobName", "-host", "hostName"})
 
-				Ω(statusCode).Should(Equal(0))
+				Ω(err).Should(BeNil())
 			})
 		})
 	})
@@ -197,38 +180,34 @@ var _ = Describe("Command Parser", func(){
 	Describe("Query Command", func(){
 
 		Context("Missing job name", func(){
-			It("Prints usage and exits with error status 1", func(){
+			It("Prints usage and returns error", func(){
 
 				logger.
 					On("Write", mock.AnythingOfType("[]uint8")).
 					Return(123, nil) // called for usage details
 
-				statusCode := parser.Parse([]string{"foo.exe", "query"})
+				err := parser.Parse([]string{"foo.exe", "query"})
 
-				Ω(statusCode).Should(Equal(1))
+				Ω(err.Error()).Should(Equal("job name is required"))
 			})
 		})
 
 		Context("Error returned from ClientService", func(){
-			It("Print error and return status 3", func(){
+			It("Print error and return", func(){
 
 				clientService.
 					On("Query", "jobName", "hostName").
 					Return(status.Status(""), errors.New("error message")).
 					Times(1)
 
-				logger.
-					On("Printf", "error querying job: %s", "error message").
-					Times(1)
+				err := parser.Parse([]string{"foo.exe", "query", "-name", "jobName", "-host", "hostName"})
 
-				statusCode := parser.Parse([]string{"foo.exe", "query", "-name", "jobName", "-host", "hostName"})
-
-				Ω(statusCode).Should(Equal(3))
+				Ω(err.Error()).Should(Equal("error message"))
 			})
 		})
 
 		Context("Success", func(){
-			It("return status 0", func(){
+			It("Returns no error", func(){
 
 				clientService.
 					On("Query", "jobName", "hostName").
@@ -239,9 +218,9 @@ var _ = Describe("Command Parser", func(){
 					On("Printf", "job status: %s\n", status.Running.String()).
 					Times(1)
 
-				statusCode := parser.Parse([]string{"foo.exe", "query", "-name", "jobName", "-host", "hostName"})
+				err := parser.Parse([]string{"foo.exe", "query", "-name", "jobName", "-host", "hostName"})
 
-				Ω(statusCode).Should(Equal(0))
+				Ω(err).Should(BeNil())
 			})
 		})
 	})
@@ -249,44 +228,41 @@ var _ = Describe("Command Parser", func(){
 	Describe("Log Stream Command", func(){
 
 		Context("Missing job name", func(){
-			It("Prints usage and exits with error status 1", func(){
+			It("Prints usage and returns error", func(){
 
 				logger.
 					On("Write", mock.AnythingOfType("[]uint8")).
 					Return(123, nil) // called for usage details
 
-				statusCode := parser.Parse([]string{"foo.exe", "log"})
+				err := parser.Parse([]string{"foo.exe", "log"})
 
-				Ω(statusCode).Should(Equal(1))
+				Ω(err.Error()).Should(Equal("job name is required"))
 			})
 		})
 
 		Context("Error returned from ClientService", func(){
-			It("Print error and return status 3", func(){
+			It("Returns error", func(){
 
 				clientService.
 					On("Log", "jobName", "hostName").
 					Return(nil, errors.New("error message")).
 					Times(1)
 
-				logger.
-					On("Printf", "error streaming logs from job: %s", "error message").
-					Times(1)
+				err := parser.Parse([]string{"foo.exe", "log", "-name", "jobName", "-host", "hostName"})
 
-				statusCode := parser.Parse([]string{"foo.exe", "log", "-name", "jobName", "-host", "hostName"})
-
-				Ω(statusCode).Should(Equal(3))
+				Ω(err.Error()).Should(Equal("error message"))
 			})
 		})
 
 		Context("Success", func(){
-			It("return status 0", func(){
+			It("Returns no error", func(){
 
 				logReader := strings.NewReader("one\ntwo\n")
+				readCloser := test.NewMockReadCloser(logReader)
 
 				clientService.
 					On("Log", "jobName", "hostName").
-					Return(logReader, nil).
+					Return(readCloser, nil).
 					Times(1)
 
 				logger.
@@ -297,9 +273,9 @@ var _ = Describe("Command Parser", func(){
 					On("Print", "two\n").
 					Times(1)
 
-				statusCode := parser.Parse([]string{"foo.exe", "log", "-name", "jobName", "-host", "hostName"})
+				err := parser.Parse([]string{"foo.exe", "log", "-name", "jobName", "-host", "hostName"})
 
-				Ω(statusCode).Should(Equal(0))
+				Ω(err).Should(BeNil())
 			})
 		})
 	})
